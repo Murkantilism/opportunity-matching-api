@@ -1,3 +1,7 @@
+# Custom Ignore Specific to this repo
+users.json
+opportunities.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

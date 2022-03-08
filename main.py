@@ -26,8 +26,6 @@ class Matches(Resource):
 
 api.add_resource(Matches, '/matches');
 
-
-
 if __name__ == '__main__':
     process_files()
     app.run(debug=True)
