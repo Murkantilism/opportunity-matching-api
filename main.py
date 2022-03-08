@@ -28,8 +28,10 @@ naive_matching(users)
 
 class Matches(Resource):
     def get(self, limit_to_top_results = 10):
-        print(matches)
-        return matches
+        if (limit_to_top_results):
+            return matches[:limit_to_top_results]
+        else:
+            return matches
 
 api.add_resource(Matches, '/matches');
 
