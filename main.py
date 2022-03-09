@@ -15,7 +15,9 @@ rankToIntMap = {
     'II': 2,
     'III': 3,
     'IV': 4,
-    'V': 5
+    'V': 5,
+    'VI': 6,
+    'VII': 7
 }
 
 def reverseRankLookup(rankIndex):
@@ -39,9 +41,11 @@ def brute_force_matching(users, promotion_match_depth, demotion_match_depth):
                         if (promotion_match_depth or demotion_match_depth):
                             availableRank = role.split(' ')[-1]
                             if (availableRank == 'I' or availableRank == 'II' or availableRank == 'III' or availableRank == 'IV' or availableRank == 'V'):
-                                if (user['first_name'] == 'Gris'):
-                                    print('roleTitleSansRank: ', role.split(' '))
-                                potentialDiagonalMatches = getRankTolerances(role.split(' ').pop(-1), availableRank, promotion_match_depth, demotion_match_depth)
+                                listOfRoles = role.split(' ')
+                                listOfRoles.pop(-1)
+                                roleTitleSansRank = " ".join(r for r in listOfRoles)
+                                print('roleTitleSansRank: ' + roleTitleSansRank)
+                                potentialDiagonalMatches = getRankTolerances(roleTitleSansRank, availableRank, promotion_match_depth, demotion_match_depth)
                                 for diag in potentialDiagonalMatches:
                                     if (diag['role'] in user['interested_in']):
                                         match_found(diag['confidence'], diag.role, user, opp)
@@ -71,30 +75,29 @@ def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
     if (baseRank == 'IV'): baseRankIndex = 4
     if (baseRank == 'V'): baseRankIndex = 5
     mixedRankMatches = []
-    
-    if (upperLimit):
-        numSteps = baseRankIndex + upperLimit
-        i = 0
-        while(i <= numSteps):
-            i += 1
-            mixedRankMatches.append({
-                'role': roleTitleSansRank + getNextRank(baseRank, i, True),
-                'confidence': getNewConfidence(i, True)
-            })
-    if (lowerLimit):
-        numSteps = baseRankIndex - lowerLimit
-        j = 0
-        while(j <= numSteps):
-            j += 1
-            mixedRankMatches.append({
-                'role': roleTitleSansRank + getNextRank(baseRank, i, False),
-                'confidence': getNewConfidence(i, False)
-            })
-            
-    if (len(mixedRankMatches)):
-        print('mixedRankMatches\n:')
-        print(mixedRankMatches)
-    return mixedRankMatches
+    if (roleTitleSansRank is not None):
+        if (upperLimit):
+            numSteps = baseRankIndex + upperLimit
+            i = 0
+            while(i <= numSteps):
+                i += 1
+                print('next promotion rank: ', getNextRank(baseRank, i, True))
+                mixedRankMatches.append({
+                    'role': roleTitleSansRank + getNextRank(baseRank, i, True),
+                    'confidence': getNewConfidence(i, True)
+                })
+        if (lowerLimit):
+            numSteps = baseRankIndex - lowerLimit
+            j = 0
+            while(j <= numSteps):
+                j += 1
+                print('next rank: ', getNextRank(baseRank, i, False))
+                mixedRankMatches.append({
+                    'role': roleTitleSansRank + getNextRank(baseRank, i, False),
+                    'confidence': getNewConfidence(i, False)
+                })
+
+        return mixedRankMatches
 
 def getNextRank(old, diff, direction):
     # Allow upward lateral movement
