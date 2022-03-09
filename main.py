@@ -9,8 +9,19 @@ matches = []
 MATCH_RESULT_LIMIT = 1
 PROMOTION_MATCH_DEPTH = 0
 DEMOTION_MATCH_DEPTH = 0
-PROMOTION_MATCH_MAX = 4
-DEMOTION_MATCH_MAX = 4
+
+rankToIntMap = {
+    'I': 1,
+    'II': 2,
+    'III': 3,
+    'IV': 4,
+    'V': 5
+}
+
+def reverseRankLookup(rankIndex):
+    for key, value in rankToIntMap.items():
+        if (value == rankIndex):
+            return key
 
 users_file = open('users.json')
 users = json.load(users_file)
@@ -24,11 +35,15 @@ def brute_force_matching(users, promotion_match_depth, demotion_match_depth):
             for role in opp['roles']:
                 for user in users:
                     if (user and user['interested_in'] and len(user['interested_in']) > 0):
+                        # If the API query allows for mixed matches, expand scope of matching algo
                         if (promotion_match_depth or demotion_match_depth):
                             availableRank = role.split(' ')[-1]
                             if (availableRank == 'I' or availableRank == 'II' or availableRank == 'III' or availableRank == 'IV' or availableRank == 'V'):
-                                rankTolerances = getRankTolerances(availableRank, promotion_match_depth, demotion_match_depth)
-
+                                potentialDiagonalMatches = getRankTolerances(role.split(' ').pop(-1), availableRank, reverseRankLookup(promotion_match_depth), reverseRankLookup(demotion_match_depth))
+                                for diag in potentialDiagonalMatches:
+                                    if (diag.role in user['interested_in']):
+                                        match_found(diag.confidence, diag.role, user, opp)
+                        # Process direct 1:1 matches
                         if (role in user['interested_in']):
                             confidence_rating = 100
                             match_found(confidence_rating, role, user, opp)
@@ -47,25 +62,62 @@ def match_found(confidence, role, user, opportunity):
         }
     })
 
-def getRankTolerances(baseRank, minRank, maxRank):
+def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
+    baseRankIndex = 1
+    if (baseRank == 'II'): baseRankIndex = 2
+    if (baseRank == 'III'): baseRankIndex = 3
+    if (baseRank == 'IV'): baseRankIndex = 4
+    if (baseRank == 'V'): baseRankIndex = 5
+    mixedRankMatches = []
     
-    print('baseRank: ' + baseRank)
+    if (upperLimit):
+        numSteps = baseRankIndex + upperLimit
+        i = 0
+        while(i <= numSteps):
+            i += 1
+            mixedRankMatches.append({
+                role: roleTitleSansRank + getNextRank(baseRank, i, true),
+                confidence: getNewConfidence(i, true)
+            })
+    if (lowerLimit):
+        numSteps = baseRankIndex - lowerLimit
+        j = 0
+        while(j <= numSteps):
+            j += 1
+            mixedRankMatches.append({
+                role: roleTitleSansRank + getNextRank(baseRank, i, false),
+                confidence: getNewConfidence(i, true)
+            })
+            
+    if (len(mixedRankMatches)):
+        print('mixedRankMatches\n:')
+        print(mixedRankMatches)
+    return mixedRankMatches
+
+def getNextRank(old, diff, direction):
+    # Allow upward lateral movement
+    if (direction):
+        return rankToIntMap[rankToIntMap[old] + diff]
+    # Allow downward lateral movement
+    else:
+        rankToIntMap[rankToIntMap[old] - diff]
+
+def getNewConfidence(diff, direction):
+    if (direction):
+        return 100 - 0.25 * diff
+    else:
+        return 100 - 0.50 * diff
 
 class Matches(Resource):
     def get(self):
         args = request.args
-        limit_to_top_results = args.get('limit')
-        promotion_match_depth = args.get=('up') or PROMOTION_MATCH_DEPTH
-        demotion_match_depth = args.get=('down') or DEMOTION_MATCH_DEPTH
         
+        limit_to_top_results = args.get("limit")
+        promotion_match_depth = args.get("levelup")
+        demotion_match_depth = args.get=("leveldown")
+        
+        print('passing in limit_to_top_results: ' + limit_to_top_results)
         print('passed in up: ' + promotion_match_depth)
-        
-        
-        # Prevent URL params from exceeding rank I -> V or V -> I match requests
-        #if (promotion_match_depth > PROMOTION_MATCH_MAX):
-        #    promotion_match_depth = PROMOTION_MATCH_MAX
-        #if (demotion_match_depth > DEMOTION_MATCH_MAX):
-        #    demotion_match_depth = DEMOTION_MATCH_MAX
         
         brute_force_matching(users, promotion_match_depth, demotion_match_depth)
         if (limit_to_top_results == 0):
