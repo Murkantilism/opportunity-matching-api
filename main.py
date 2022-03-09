@@ -6,7 +6,9 @@ app = Flask(__name__)
 api = Api(app)
 
 matches = []
-DEFAULT_RESULT_LIMIT = 1
+MATCH_RESULT_LIMIT = 1
+PROMOTION_MATCH_DEPTH = 0
+DEMOTION_MATCH_DEPTH = 0
 
 users_file = open('users.json')
 users = json.load(users_file)
@@ -26,21 +28,30 @@ def brute_force_matching(users):
     users_file.close()
     opportunities_file.close()
 
-brute_force_matching(users) 
+brute_force_matching(users)
+
+def mixed_bf_matching(users):
+    # TODO: Allow for matching roles where the seniority isn't a 1:1 match in exchange for reducing confidence rating
 
 class Matches(Resource):
     def get(self):
         args = request.args
         limit_to_top_results = args.get('limit')
+        promotion_match_depth = args.get=('up') or PROMOTION_MATCH_DEPTH
+        demotion_match_depth = args.get=('down') or DEMOTION_MATCH_DEPTH
         
-        if (limit_to_top_results == 0):
-            return matches
-        elif (limit_to_top_results):
-            return matches[:limit_to_top_results]
+        if (promotion_match_depth and demotion_match_depth):
+            
         else:
-            return matches[:DEFAULT_RESULT_LIMIT]
+            # Direct matches only
+            if (limit_to_top_results == 0):
+                return matches
+            elif (limit_to_top_results):
+                return matches[:limit_to_top_results]
+            else:
+                return matches[:MATCH_RESULT_LIMIT]
 
-api.add_resource(Matches, '/matches');
+api.add_resource(Matches, '/matches')
 
 if __name__ == '__main__':
     app.run(debug=True)
