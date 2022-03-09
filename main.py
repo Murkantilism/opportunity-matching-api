@@ -86,7 +86,7 @@ def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
             j += 1
             mixedRankMatches.append({
                 role: roleTitleSansRank + getNextRank(baseRank, i, false),
-                confidence: getNewConfidence(i, true)
+                confidence: getNewConfidence(i, false)
             })
             
     if (len(mixedRankMatches)):
@@ -104,9 +104,9 @@ def getNextRank(old, diff, direction):
 
 def getNewConfidence(diff, direction):
     if (direction):
-        return 100 - 0.25 * diff
+        return 100 - 0.10 * diff
     else:
-        return 100 - 0.50 * diff
+        return 100 - 0.25 * diff
 
 class Matches(Resource):
     def get(self):
