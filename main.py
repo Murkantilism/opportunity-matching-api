@@ -39,10 +39,12 @@ def brute_force_matching(users, promotion_match_depth, demotion_match_depth):
                         if (promotion_match_depth or demotion_match_depth):
                             availableRank = role.split(' ')[-1]
                             if (availableRank == 'I' or availableRank == 'II' or availableRank == 'III' or availableRank == 'IV' or availableRank == 'V'):
-                                potentialDiagonalMatches = getRankTolerances(role.split(' ').pop(-1), availableRank, reverseRankLookup(promotion_match_depth), reverseRankLookup(demotion_match_depth))
+                                if (user['first_name'] == 'Gris'):
+                                    print('roleTitleSansRank: ', role.split(' '))
+                                potentialDiagonalMatches = getRankTolerances(role.split(' ').pop(-1), availableRank, promotion_match_depth, demotion_match_depth)
                                 for diag in potentialDiagonalMatches:
-                                    if (diag.role in user['interested_in']):
-                                        match_found(diag.confidence, diag.role, user, opp)
+                                    if (diag['role'] in user['interested_in']):
+                                        match_found(diag['confidence'], diag.role, user, opp)
                         # Process direct 1:1 matches
                         if (role in user['interested_in']):
                             confidence_rating = 100
@@ -76,8 +78,8 @@ def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
         while(i <= numSteps):
             i += 1
             mixedRankMatches.append({
-                role: roleTitleSansRank + getNextRank(baseRank, i, true),
-                confidence: getNewConfidence(i, true)
+                'role': roleTitleSansRank + getNextRank(baseRank, i, True),
+                'confidence': getNewConfidence(i, True)
             })
     if (lowerLimit):
         numSteps = baseRankIndex - lowerLimit
@@ -85,8 +87,8 @@ def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
         while(j <= numSteps):
             j += 1
             mixedRankMatches.append({
-                role: roleTitleSansRank + getNextRank(baseRank, i, false),
-                confidence: getNewConfidence(i, false)
+                'role': roleTitleSansRank + getNextRank(baseRank, i, False),
+                'confidence': getNewConfidence(i, False)
             })
             
     if (len(mixedRankMatches)):
@@ -97,32 +99,29 @@ def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
 def getNextRank(old, diff, direction):
     # Allow upward lateral movement
     if (direction):
-        return rankToIntMap[rankToIntMap[old] + diff]
+        return reverseRankLookup(rankToIntMap[old] + diff)
     # Allow downward lateral movement
     else:
-        rankToIntMap[rankToIntMap[old] - diff]
+        reverseRankLookup(rankToIntMap[old] - diff)
 
 def getNewConfidence(diff, direction):
     if (direction):
-        return 100 - 0.10 * diff
+        return 100 * (0.10 * diff)
     else:
-        return 100 - 0.25 * diff
+        return 100 * (0.25 * diff)
 
 class Matches(Resource):
     def get(self):
         args = request.args
         
-        limit_to_top_results = args.get("limit")
-        promotion_match_depth = args.get("levelup")
-        demotion_match_depth = args.get=("leveldown")
-        
-        print('passing in limit_to_top_results: ' + limit_to_top_results)
-        print('passed in up: ' + promotion_match_depth)
-        
+        limit_to_top_results = int(args.get("limit"))
+        promotion_match_depth = int(args.get("levelup"))
+        demotion_match_depth = int(args.get("leveldown"))
+
         brute_force_matching(users, promotion_match_depth, demotion_match_depth)
         if (limit_to_top_results == 0):
             return matches
-        elif (limit_to_top_results):
+        elif (limit_to_top_results and matches and len(matches)):
             return matches[:limit_to_top_results]
         else:
             return matches[:MATCH_RESULT_LIMIT]
