@@ -77,23 +77,23 @@ def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
     mixedRankMatches = []
     if (roleTitleSansRank is not None):
         if (upperLimit):
-            numSteps = baseRankIndex + upperLimit
+            numLevelUpSteps = baseRankIndex + upperLimit
             i = 0
-            while(i <= numSteps):
+            while(i <= numLevelUpSteps):
                 i += 1
-                print('next promotion rank: ', getNextRank(baseRank, i, True))
+                print('next level up rank: ', getNextRank(baseRank, i, True))
                 mixedRankMatches.append({
                     'role': roleTitleSansRank + getNextRank(baseRank, i, True),
                     'confidence': getNewConfidence(i, True)
                 })
         if (lowerLimit):
-            numSteps = baseRankIndex - lowerLimit
+            numLevelDownSteps = baseRankIndex - lowerLimit
             j = 0
-            while(j <= numSteps):
-                j += 1
-                print('next rank: ', getNextRank(baseRank, i, False))
+            while(j >= numLevelDownSteps):
+                j -= 1
+                print('next level down rank: ', getNextRank(baseRank, j, False))
                 mixedRankMatches.append({
-                    'role': roleTitleSansRank + getNextRank(baseRank, i, False),
+                    'role': roleTitleSansRank + getNextRank(baseRank, j, False),
                     'confidence': getNewConfidence(i, False)
                 })
 
