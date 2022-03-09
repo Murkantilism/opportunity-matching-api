@@ -1,18 +1,20 @@
 import json
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Resource, Api
 
 app = Flask(__name__)
 api = Api(app)
 
 matches = []
+DEFAULT_RESULT_LIMIT = 1
 
 users_file = open('users.json')
 users = json.load(users_file)
 opportunities_file = open('opportunities.json')
 opportunities = json.load(opportunities_file)
 
-def naive_matching(users):
+def brute_force_matching(users):
+    
     for opp in opportunities:
         if (opp['roles'] and len(opp['roles']) > 0):
             for role in opp['roles']:
@@ -24,17 +26,21 @@ def naive_matching(users):
     users_file.close()
     opportunities_file.close()
 
-naive_matching(users)
+brute_force_matching(users) 
 
 class Matches(Resource):
-    def get(self, limit_to_top_results = 10):
-        if (limit_to_top_results):
+    def get(self):
+        args = request.args
+        limit_to_top_results = args.get('limit')
+        
+        if (limit_to_top_results == 0):
+            return matches
+        elif (limit_to_top_results):
             return matches[:limit_to_top_results]
         else:
-            return matches
+            return matches[:DEFAULT_RESULT_LIMIT]
 
 api.add_resource(Matches, '/matches');
 
 if __name__ == '__main__':
-    
     app.run(debug=True)
