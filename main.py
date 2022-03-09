@@ -7,8 +7,8 @@ api = Api(app)
 
 matches = []
 MATCH_RESULT_LIMIT = 1
-PROMOTION_MATCH_DEPTH = 0
-DEMOTION_MATCH_DEPTH = 0
+LEVELUP_MATCH_DEPTH = 0
+LEVELDOWN_MATCH_DEPTH = 0
 
 rankToIntMap = {
     'I': 1,
@@ -30,7 +30,7 @@ users = json.load(users_file)
 opportunities_file = open('opportunities.json')
 opportunities = json.load(opportunities_file)
 
-def brute_force_matching(users, promotion_match_depth, demotion_match_depth):
+def brute_force_matching(users, levelup_match_depth, leveldown_match_depth):
     for opp in opportunities:
         confidence_rating = 0
         if (opp['roles'] and len(opp['roles']) > 0):
@@ -38,14 +38,14 @@ def brute_force_matching(users, promotion_match_depth, demotion_match_depth):
                 for user in users:
                     if (user and user['interested_in'] and len(user['interested_in']) > 0):
                         # If the API query allows for mixed matches, expand scope of matching algo
-                        if (promotion_match_depth or demotion_match_depth):
+                        if (levelup_match_depth or leveldown_match_depth):
                             availableRank = role.split(' ')[-1]
                             if (availableRank == 'I' or availableRank == 'II' or availableRank == 'III' or availableRank == 'IV' or availableRank == 'V'):
                                 listOfRoles = role.split(' ')
                                 listOfRoles.pop(-1)
                                 roleTitleSansRank = " ".join(r for r in listOfRoles)
                                 print('roleTitleSansRank: ' + roleTitleSansRank)
-                                potentialDiagonalMatches = getRankTolerances(roleTitleSansRank, availableRank, promotion_match_depth, demotion_match_depth)
+                                potentialDiagonalMatches = getRankTolerances(roleTitleSansRank, availableRank, levelup_match_depth, leveldown_match_depth)
                                 for diag in potentialDiagonalMatches:
                                     if (diag['role'] in user['interested_in']):
                                         match_found(diag['confidence'], diag.role, user, opp)
@@ -117,11 +117,11 @@ class Matches(Resource):
     def get(self):
         args = request.args
         
-        limit_to_top_results = int(args.get("limit"))
-        promotion_match_depth = int(args.get("levelup"))
-        demotion_match_depth = int(args.get("leveldown"))
+        limit_to_top_results = int(args.get("limit")) or MATCH_RESULT_LIMIT
+        levelup_match_depth = int(args.get("levelup")) or LEVELUP_MATCH_DEPTH
+        leveldown_match_depth = int(args.get("leveldown")) or LEVELDOWN_MATCH_DEPTH
 
-        brute_force_matching(users, promotion_match_depth, demotion_match_depth)
+        brute_force_matching(users, levelup_match_depth, leveldown_match_depth)
         if (limit_to_top_results == 0):
             return matches
         elif (limit_to_top_results and matches and len(matches)):
