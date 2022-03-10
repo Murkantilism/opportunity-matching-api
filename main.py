@@ -115,22 +115,22 @@ def getNewConfidence(diff, direction):
 class Matches(Resource):
     def get(self):
         args = request.args
-        limit_to_top_results = MATCH_RESULT_LIMIT
+        limiToTopResults = MATCH_RESULT_LIMIT
         levelupMatchDepth = LEVELUP_MATCH_DEPTH
         leveldownMatchDepth = LEVELDOWN_MATCH_DEPTH
 
-        if(args.get("levelup") is not None):
-            limit_to_top_results = int(args.get("limit"))
+        if(args.get("limit") is not None):
+            limiToTopResults = int(args.get("limit"))
         if (args.get("levelup") is not None):
             levelupMatchDepth = int(args.get("levelup"))
         if(args.get("leveldown") is not None):
             leveldownMatchDepth = int(args.get("leveldown"))
 
         brute_force_matching(users, levelupMatchDepth, leveldownMatchDepth)
-        if (limit_to_top_results == 0):
+        if (limiToTopResults == 0):
             return matches # unlimited results; performance not garunteed scalable
-        elif (limit_to_top_results and matches and len(matches)):
-            return matches[:limit_to_top_results]
+        elif (limiToTopResults and matches and len(matches)):
+            return matches[:limiToTopResults]
         else:
             return matches[:MATCH_RESULT_LIMIT]
 
