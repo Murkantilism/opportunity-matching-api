@@ -12,9 +12,9 @@ Issue `python -m unittest tests.py` in command line
 
 # Run Options | Query Parameters
 
-1. __limit__ returns the top N matches based on input; set to 0 for unlimited results (warning: performance not yet garunteed)
-1. __levelup__ - experimental feature to allow mixed rank matching N seniority ranks above the one a company is looking to fill (ie: the candidate would experience career growth if hired), at the expense of a lower confidence rating
-1. __leveldown__ - same as levelup but for seniority ranks below, at a slightly greater expense to confidence rating than a levelup
+1. __limit:__ returns the top N matches based on input; set to 0 for unlimited results (warning: performance not yet garunteed)
+1. __levelup:__ experimental feature to allow mixed rank matching N seniority ranks above the one a company is looking to fill (ie: the candidate would experience career growth if hired), at the expense of a lower confidence rating
+1. __leveldown:__ same as levelup but for seniority ranks below, at a slightly greater expense to confidence rating than a levelup
 
 Sample query:
 
