@@ -9,15 +9,14 @@ matches = []
 MATCH_RESULT_LIMIT = 1
 LEVELUP_MATCH_DEPTH = 0
 LEVELDOWN_MATCH_DEPTH = 0
+MAX_CONFIDENCE_RATING = 100
 
 rankToIntMap = {
     'I': 1,
     'II': 2,
     'III': 3,
     'IV': 4,
-    'V': 5,
-    'VI': 6,
-    'VII': 7
+    'V': 5
 }
 
 def reverseRankLookup(rankIndex):
@@ -44,14 +43,13 @@ def brute_force_matching(users, levelup_match_depth, leveldown_match_depth):
                                 roleWordsList = role.split(' ')
                                 roleWordsList.pop(-1)
                                 roleTitleSansRank = " ".join(r for r in roleWordsList)
-                                print('roleTitleSansRank: ' + roleTitleSansRank)
                                 potentialDiagonalMatches = getRankTolerances(roleTitleSansRank, availableRank, levelup_match_depth, leveldown_match_depth)
                                 for diag in potentialDiagonalMatches:
                                     if (diag['role'] in user['interested_in']):
-                                        match_found(diag['confidence'], diag.role, user, opp)
+                                        match_found(diag['confidence'], diag['role'], user, opp)
                         # Process direct 1:1 matches
                         if (role in user['interested_in']):
-                            confidence_rating = 100
+                            confidence_rating = MAX_CONFIDENCE_RATING
                             match_found(confidence_rating, role, user, opp)
     
     users_file.close()
@@ -68,6 +66,7 @@ def match_found(confidence, role, user, opportunity):
         }
     })
 
+# TODO: Implement fuzzy-matching for titles like "Assistant", "Senior", & "VP"
 def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
     baseRankIndex = 1
     if (baseRank == 'II'): baseRankIndex = 2
@@ -77,49 +76,52 @@ def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
     mixedRankMatches = []
     if (roleTitleSansRank is not None):
         if (upperLimit):
-            numLevelUpSteps = baseRankIndex + upperLimit
-            i = 0
-            while(i <= numLevelUpSteps):
+            i = baseRankIndex
+            while(i < upperLimit):
                 i += 1
-                print('next level up rank: ', getNextRank(baseRank, i, True))
+                nextRankUp = getNextRank(baseRankIndex, i)
                 mixedRankMatches.append({
-                    'role': roleTitleSansRank + getNextRank(baseRank, i, True),
+                    'role': roleTitleSansRank + " " + nextRankUp,
                     'confidence': getNewConfidence(i, True)
                 })
         if (lowerLimit):
-            numLevelDownSteps = baseRankIndex - lowerLimit
-            j = 0
-            while(j >= numLevelDownSteps):
+            j = baseRankIndex
+            while(j > lowerLimit):
                 j -= 1
-                print('next level down rank: ', getNextRank(baseRank, j, False))
+                nextRankDown = getNextRank(baseRankIndex, j)
                 mixedRankMatches.append({
-                    'role': roleTitleSansRank + getNextRank(baseRank, j, False),
-                    'confidence': getNewConfidence(i, False)
+                    'role': roleTitleSansRank + " " + nextRankDown,
+                    'confidence': getNewConfidence(j, False)
                 })
-
     return mixedRankMatches
 
-def getNextRank(old, diff, direction):
-    # Allow upward lateral movement
-    if (direction):
-        return reverseRankLookup(rankToIntMap[old] + diff)
-    # Allow downward lateral movement
+def getNextRank(old, diff):
+    if (old >= rankToIntMap['V']):
+        return 'V'
+    elif (old < rankToIntMap['I']):
+        return 'I'
     else:
-        reverseRankLookup(rankToIntMap[old] - diff)
+        return reverseRankLookup(diff)
 
 def getNewConfidence(diff, direction):
     if (direction):
-        return 100 * (0.10 * diff)
+        return MAX_CONFIDENCE_RATING * (0.10 * diff)
     else:
-        return 100 * (0.25 * diff)
+        return MAX_CONFIDENCE_RATING * (0.25 * diff)
 
 class Matches(Resource):
     def get(self):
         args = request.args
-        
-        limit_to_top_results = int(args.get("limit")) or MATCH_RESULT_LIMIT
-        levelup_match_depth = int(args.get("levelup")) or LEVELUP_MATCH_DEPTH
-        leveldown_match_depth = int(args.get("leveldown")) or LEVELDOWN_MATCH_DEPTH
+        limit_to_top_results = MATCH_RESULT_LIMIT
+        levelup_match_depth = LEVELUP_MATCH_DEPTH
+        leveldown_match_depth = LEVELDOWN_MATCH_DEPTH
+
+        if(args.get("levelup") is not None):
+            limit_to_top_results = int(args.get("limit"))
+        if (args.get("levelup") is not None):
+            levelup_match_depth = int(args.get("levelup"))
+        if(args.get("leveldown") is not None):
+            leveldown_match_depth = int(args.get("leveldown"))
 
         brute_force_matching(users, levelup_match_depth, leveldown_match_depth)
         if (limit_to_top_results == 0):
