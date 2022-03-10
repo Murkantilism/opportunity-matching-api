@@ -128,7 +128,7 @@ class Matches(Resource):
 
         brute_force_matching(users, levelup_match_depth, leveldown_match_depth)
         if (limit_to_top_results == 0):
-            return matches
+            return matches # unlimited results; performance not garunteed scalable
         elif (limit_to_top_results and matches and len(matches)):
             return matches[:limit_to_top_results]
         else:
