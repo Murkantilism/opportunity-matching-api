@@ -27,38 +27,38 @@ def reverseRankLookup(rankIndex):
         if (value == rankIndex):
             return key
 
-users_file = open('users.json')
-users = json.load(users_file)
-opportunities_file = open('opportunities.json')
-opportunities = json.load(opportunities_file)
+usersFile = open('users.json')
+users = json.load(usersFile)
+opportunitiesFile = open('opportunities.json')
+opportunities = json.load(opportunitiesFile)
 
-def brute_force_matching(users, levelup_match_depth, leveldown_match_depth):
+def brute_force_matching(users, levelupMatchDepth, leveldownMatchDepth):
     for opp in opportunities:
-        confidence_rating = 0
+        confidenceRating = 0
         if (opp['roles'] and len(opp['roles']) > 0):
             for role in opp['roles']:
                 for user in users:
                     if (user and user['interested_in'] and len(user['interested_in']) > 0):
                         # If the API query allows for mixed matches, expand scope of matching algo
-                        if (levelup_match_depth or leveldown_match_depth):
+                        if (levelupMatchDepth or leveldownMatchDepth):
                             availableRank = role.split(' ')[-1]
                             if (availableRank == 'I' or availableRank == 'II' or availableRank == 'III' or availableRank == 'IV' or availableRank == 'V'):
                                 roleWordsList = role.split(' ')
                                 roleWordsList.pop(-1)
                                 roleTitleSansRank = " ".join(r for r in roleWordsList)
-                                potentialDiagonalMatches = getRankTolerances(roleTitleSansRank, availableRank, levelup_match_depth, leveldown_match_depth)
+                                potentialDiagonalMatches = getRankTolerances(roleTitleSansRank, availableRank, levelupMatchDepth, leveldownMatchDepth)
                                 for diag in potentialDiagonalMatches:
                                     if (diag['role'] in user['interested_in']):
-                                        match_found(diag['confidence'], diag['role'], user, opp)
+                                        matchFound(diag['confidence'], diag['role'], user, opp)
                         # Process direct 1:1 matches
                         if (role in user['interested_in']):
-                            confidence_rating = MAX_CONFIDENCE_RATING
-                            match_found(confidence_rating, role, user, opp)
+                            confidenceRating = MAX_CONFIDENCE_RATING
+                            matchFound(confidenceRating, role, user, opp)
     
-    users_file.close()
-    opportunities_file.close()
+    usersFile.close()
+    opportunitiesFile.close()
 
-def match_found(confidence, role, user, opportunity):
+def matchFound(confidence, role, user, opportunity):
     matches.append({
         'confidence': confidence,
         'role_matched': role,
@@ -116,17 +116,17 @@ class Matches(Resource):
     def get(self):
         args = request.args
         limit_to_top_results = MATCH_RESULT_LIMIT
-        levelup_match_depth = LEVELUP_MATCH_DEPTH
-        leveldown_match_depth = LEVELDOWN_MATCH_DEPTH
+        levelupMatchDepth = LEVELUP_MATCH_DEPTH
+        leveldownMatchDepth = LEVELDOWN_MATCH_DEPTH
 
         if(args.get("levelup") is not None):
             limit_to_top_results = int(args.get("limit"))
         if (args.get("levelup") is not None):
-            levelup_match_depth = int(args.get("levelup"))
+            levelupMatchDepth = int(args.get("levelup"))
         if(args.get("leveldown") is not None):
-            leveldown_match_depth = int(args.get("leveldown"))
+            leveldownMatchDepth = int(args.get("leveldown"))
 
-        brute_force_matching(users, levelup_match_depth, leveldown_match_depth)
+        brute_force_matching(users, levelupMatchDepth, leveldownMatchDepth)
         if (limit_to_top_results == 0):
             return matches # unlimited results; performance not garunteed scalable
         elif (limit_to_top_results and matches and len(matches)):
