@@ -1,5 +1,5 @@
 # opportunity-matching-api
-Implements a solution for an API matching endpoint exercise (details & test data are behind an NDA)
+Implements a flask solution for an API matching endpoint exercise (details & test data are behind an NDA)
 
 # Test
 Issue `python -m unittest tests.py` in command line
