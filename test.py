@@ -1,9 +1,9 @@
 import unittest
-from main import app, Matches
+from main import app, Matches, MATCH_RESULT_LIMIT
 
 class TestMatching(unittest.TestCase):
     def testMatches(self):
         with app.test_request_context():
             testMatches = Matches.get(self)
-            # Should return a single match by default
-            self.assertEqual(len(testMatches), 1)
+            # Should return the default number of matches
+            self.assertEqual(len(testMatches), MATCH_RESULT_LIMIT)
