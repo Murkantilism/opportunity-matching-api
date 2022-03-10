@@ -7,4 +7,5 @@ class TestMatching(unittest.TestCase):
             testMatches = Matches.get(self)
             # Should return the default number of matches
             self.assertEqual(len(testMatches), MATCH_RESULT_LIMIT)
+            # Should be a 1:1 match with full confidence
             self.assertEqual(testMatches[0]['confidence'], MAX_CONFIDENCE_RATING)
