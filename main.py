@@ -11,6 +11,9 @@ LEVELUP_MATCH_DEPTH = 0
 LEVELDOWN_MATCH_DEPTH = 0
 MAX_CONFIDENCE_RATING = 100
 
+levelupMatchConfidenceModifier = 0.10
+leveldownMatchConfidenceModifier = 0.25
+
 rankToIntMap = {
     'I': 1,
     'II': 2,
@@ -105,9 +108,9 @@ def getNextRank(old, diff):
 
 def getNewConfidence(diff, direction):
     if (direction):
-        return MAX_CONFIDENCE_RATING * (0.10 * diff)
+        return MAX_CONFIDENCE_RATING * (levelupMatchConfidenceModifier * diff)
     else:
-        return MAX_CONFIDENCE_RATING * (0.25 * diff)
+        return MAX_CONFIDENCE_RATING * (leveldownMatchConfidenceModifier * diff)
 
 class Matches(Resource):
     def get(self):
