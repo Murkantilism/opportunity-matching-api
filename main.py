@@ -41,9 +41,9 @@ def brute_force_matching(users, levelup_match_depth, leveldown_match_depth):
                         if (levelup_match_depth or leveldown_match_depth):
                             availableRank = role.split(' ')[-1]
                             if (availableRank == 'I' or availableRank == 'II' or availableRank == 'III' or availableRank == 'IV' or availableRank == 'V'):
-                                listOfRoles = role.split(' ')
-                                listOfRoles.pop(-1)
-                                roleTitleSansRank = " ".join(r for r in listOfRoles)
+                                roleWordsList = role.split(' ')
+                                roleWordsList.pop(-1)
+                                roleTitleSansRank = " ".join(r for r in roleWordsList)
                                 print('roleTitleSansRank: ' + roleTitleSansRank)
                                 potentialDiagonalMatches = getRankTolerances(roleTitleSansRank, availableRank, levelup_match_depth, leveldown_match_depth)
                                 for diag in potentialDiagonalMatches:
@@ -97,7 +97,7 @@ def getRankTolerances(roleTitleSansRank, baseRank, upperLimit, lowerLimit):
                     'confidence': getNewConfidence(i, False)
                 })
 
-        return mixedRankMatches
+    return mixedRankMatches
 
 def getNextRank(old, diff, direction):
     # Allow upward lateral movement
