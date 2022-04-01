@@ -1,5 +1,7 @@
 # opportunity-matching-api
-Implements a flask solution for an API matching endpoint exercise (full exercise details & test data are behind an NDA, but I'm happy to provide generalized test data and high-level goals for the matching algorithm **upon request**)
+Implements a flask solution for an API matching endpoint exercise.
+
+Full exercise details & test data are behind an NDA, but I'm happy to provide generalized test data and high-level goals for the matching algorithm **upon request**. My solution is posted with permission/encouragement from the other party.
 
 # Test
 Issue `python -m unittest tests.py` in command line
